@@ -4,7 +4,7 @@ import Cookies from "universal-cookie";
 import * as Aes from "../utils/aes-ctr";
 
 
-const api_key = "475f49b4766e7021f4b2ecfe5afa0dfe";
+const api_key = "mySecretAPIkey";
 class ApiService {
 
   constructor() {
@@ -14,20 +14,20 @@ class ApiService {
   async getAllItems(objectType) {
     let cookies = new Cookies();
     let items = await fetch(
-      `http://82.112.59.85:5000/projeqtor/api/${objectType}/all`,
+      `http://secretIPAddress/projeqtor/api/${objectType}/all`,
       {
         method: "GET",
         cache: "no-cache",
         Accept: "*/*",
         Connection: "keep-alive",
         headers: {
-          Authorization: "Basic YXBpX3Byb3ZpZGVyOjU5Qkh3bjd1Z015aQ==", //api_provider
+          Authorization: "Basic secretString", //api_provider
         },
         redirect: "follow"
       }
     );
     items = await items.json();
-    cookies.remove("PHPSESSID", {path: "/", domain: "82.112.59.85"});
+    cookies.remove("PHPSESSID", {path: "/", domain: "secretDomain"});
     return items;
   }
 
@@ -37,7 +37,7 @@ class ApiService {
     data.append("secret", RECAPTCHA_SERVER_KEY);
     data.append("response", humanKey);
 
-    const isHuman = await fetch(`http://82.112.59.85:5000/react/corsproxy/proxy.php`, {
+    const isHuman = await fetch(`http://secretIPAddress/react/corsproxy/proxy.php`, {
         method: "post",
         body: data
       })
@@ -63,7 +63,7 @@ class ApiService {
 
     if (cookies.get("PHPSESSID") === undefined) {
       const setSessionCookie = await fetch(
-        `http://82.112.59.85:5000/projeqtor/view/main.php`,
+        `http://secretIPAddress/projeqtor/view/main.php`,
         {
           headers: {
             redirect: "follow",
@@ -77,7 +77,7 @@ class ApiService {
     let loginCrypted = Aes.encrypt("admin", CryptoJS.MD5(sessionCookie), 128);
     //console.log("результат aes-ctr: " + loginCrypted);
     const getHash = await fetch(
-      `http://82.112.59.85:5000/projeqtor/tool/getHash.php?username=${encodeURIComponent(
+      `http://secretIPAddress/projeqtor/tool/getHash.php?username=${encodeURIComponent(
         loginCrypted
       )}`,
       {
@@ -117,7 +117,7 @@ class ApiService {
     }
     formBody = formBody.join("&");
 
-    const url = `http://82.112.59.85:5000/projeqtor/tool/loginCheck.php?xhrPostTimestamp=${Date.now()}`;
+    const url = `http://secretIPAddress/projeqtor/tool/loginCheck.php?xhrPostTimestamp=${Date.now()}`;
     const setProjeqtorCookie = await fetch(url, {
       method: "POST",
       headers: {
@@ -147,7 +147,7 @@ class ApiService {
     let response;
     const cookies = new Cookies();
     let res = await fetch(
-      `http://82.112.59.85:5000/projeqtor/api/${objectType}`,
+      `http://secretIPAddress/projeqtor/api/${objectType}`,
       {
         method: "POST",
         cache: "no-cache",
@@ -155,14 +155,14 @@ class ApiService {
         Connection: "keep-alive",
         "Content-Type": "multipart/form-data",
         headers: {
-          Authorization: "Basic YXBpX3Byb3ZpZGVyOjU5Qkh3bjd1Z015aQ==",
+          Authorization: "Basic secretString",
         },
         redirect: "follow",
         body: data,
       }
     );
     res = await res.json();
-    cookies.remove("PHPSESSID", { path: "/", domain: "82.112.59.85"});
+    cookies.remove("PHPSESSID", { path: "/", domain: "secretDomain"});
     let IdTicket;
     //let extractedObjects = extract(res);
     if (res.items[0].apiResult === "OK") {
@@ -213,7 +213,7 @@ class ApiService {
         filedata.append("attachmentFiles[]", files[i]);
       }
       console.log("куки прожектор" + cookies.get("projeqtor"));
-      fetch("http://82.112.59.85:5000/projeqtor/tool/saveAttachment.php", {
+      fetch("http://secretIPAddress/projeqtor/tool/saveAttachment.php", {
         method: "POST",
         Accept: "application/json",
         "Content-Type":
