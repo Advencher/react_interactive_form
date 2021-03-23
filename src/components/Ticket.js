@@ -11,11 +11,11 @@ import { Alert, AlertTitle } from "@material-ui/lab";
 import { Gluejar } from '@charliewilco/gluejar'
 
 
-//MY DOGSHIT CODE - need to separate logic from presentation code
+//MY DOG**IT CODE - need to separate logic from presentation code 
 //possible solutions - wrap state less component with logic components 
-//a lot to do
+//need to add copepaste images feature for textfields
 
-const omegaSecret = "6LcXI4QaAAAAAMhnD5h1XYGSW44jEQw-2CyrV0R9";
+const omegaSecret = "secret";
 export default class TicketForm extends Component {
   constructor(props) {
     super(props);
