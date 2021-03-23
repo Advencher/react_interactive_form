@@ -6,16 +6,53 @@ import ApiProjeqtor from "../services/api.service.js";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import ConfirmDialog from "./dialogs/ConfirmDialog";
 import { StyledButton } from "./custom/customCompnents";
+//import ReCAPTCHA from "react-google-recaptcha";
+import { Alert, AlertTitle } from "@material-ui/lab";
+import { Gluejar } from '@charliewilco/gluejar'
 
+
+//MY DOGSHIT CODE - need to separate logic from presentation code
+//possible solutions - wrap state less component with logic components 
+//a lot to do
+
+const omegaSecret = "6LcXI4QaAAAAAMhnD5h1XYGSW44jEQw-2CyrV0R9";
 export default class TicketForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
       projects: [],
       confimOpen: false,
-      response: [],
+      response: "",
+      isLoading: true,
+      files: [],
+      capchaToken: "",
+      isHuman: false,
+      alertCapcha: {
+        state: false,
+        message: "",
+      },
     };
+    this.captchaDemo = null;
+    this.clearTextFields = this.clearTextFields.bind(this);
+    this.onChangeCapcha = this.onChangeCapcha.bind(this);
   }
+
+  defaultState = () => {
+    this.setState({
+      confimOpen: false,
+      response: "",
+      isLoading: true,
+      files: [],
+    });
+  };
+
+  clearTextFields = () => {
+    this.defaultState();
+    this.ticket_description.value = "";
+    this.ticket_name.value = "";
+    this.from_who.value = "";
+    this.feedback_email.value = "";
+  };
 
   classes = makeStyles((theme) => ({
     paper: {
@@ -29,10 +66,8 @@ export default class TicketForm extends Component {
       backgroundColor: theme.palette.secondary.main,
     },
     form: {
-      width: "100%", // Fix IE 11 issue.
+      width: "100%",
       marginTop: theme.spacing(1),
-
-      //  alignItems: 'center',
     },
     submit: {
       margin: theme.spacing(3, 0, 2),
@@ -42,24 +77,63 @@ export default class TicketForm extends Component {
     },
   }));
 
+  onChangeCapcha(value) {
+    this.setState({ capchaToken: value });
+    if (value !== null)
+      this.setState({
+        isHuman: ApiProjeqtor.validateHuman(omegaSecret, value),
+      });
+  }
+
   async componentDidMount() {
-  let cookie = await ApiProjeqtor.getProjeqtorCookie();
-  let projects = await ApiProjeqtor.getAllProjects();
+    let projects = await ApiProjeqtor.getAllItems("Project");
+    let organizations = await ApiProjeqtor.getAllItems("Organization");
 
     this.setState({
-    projects: projects.items,
-    loading: false,
-    files: [],
+      projects: projects.items,
+      organizations: organizations.items,
     });
+  }
+
+  async changeLoading(loadingState) {
+    this.setState({ isLoading: loadingState });
   }
 
   handleDropzoneChange(files) {
     this.setState({ files: files });
   }
 
+  validateEmail(email) {
+    if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(email)) {
+      this.setState({
+        alertCapcha: {
+          message: "Неправильный формат email",
+          state: true,
+        },
+      });
+      return false;
+    } else return true;
+  }
+
   async handleSubmit(event) {
     event.preventDefault();
-    this.setConfirmOpen(true);
+
+    // if (this.state.capchaToken === "") {
+    //   //TO DO: MAKE EM VALIDATE RRRAGE
+    //   this.setState( {alertCapcha: {
+    //     message: "Подвердите, что вы не робот. Только честно.",
+    //     state: true
+    //   }});
+    //   return;
+    // }
+    // else if (this.state.isHuman === false) {
+    //   //TO DO: MAKE EM VALIDATE RRRAGE
+    //   this.setState( {alertCapcha: {
+    //     message: "ROBOT DETECTED EXECUTING SELF DESTRUCT PROTOCOL #0069",
+    //     state: true
+    //   }});
+    //   return;
+    // }
     const form = event.target;
     const data = new FormData(form);
     let newdata = new FormData();
@@ -72,12 +146,18 @@ export default class TicketForm extends Component {
         object["idProject"] = project.id;
       }
     });
+    if (!this.validateEmail(object.feedbackemail)) return; //если неправильный email
+    object.description = `Подразделение: ${object.nameOrganization}\n\nАвтор тикета: ${object.who}\n\n ${object.description}`;
     let jsonData = JSON.stringify(object);
-    //console.log(jsonData);
     newdata.append("data", jsonData);
-    let response = await ApiProjeqtor.postNewTicket(newdata, "Ticket");
-    this.setState({ response: response });
-    ApiProjeqtor.uploadFile(this.state.response, this.state.files);
+    this.setConfirmOpen(true);
+    let response = await ApiProjeqtor.postNewTicket(
+      newdata,
+      "Ticket",
+      this.state.files
+    );
+    this.setState({ response: JSON.stringify(response) });
+    this.changeLoading(false);
   }
 
   setConfirmOpen(open) {
@@ -89,18 +169,18 @@ export default class TicketForm extends Component {
       <div id="main-div" style={{ padding: 16, margin: "auto", maxWidth: 900 }}>
         <form
           className={this.classes.form}
-          //noValidate
           autoComplete="off"
           display="flex"
           onSubmit={this.handleSubmit.bind(this)}
         >
           <TextField
-            id="ticket-name"
+            id="ticket_name"
             name="name"
             label="Наименование задачи/тикета"
             variant="outlined"
             margin="normal"
             color="secondary"
+            inputRef={(el) => (this.ticket_name = el)}
             fullWidth
             required
           />
@@ -108,34 +188,80 @@ export default class TicketForm extends Component {
           <TextField
             id="from_who"
             name="who"
-            label="ФИО и департамент"
+            label="Введите ФИО"
             variant="outlined"
             margin="normal"
             fullWidth
+            inputRef={(el) => (this.from_who = el)}
             align="center"
             required
           />
 
+          <TextField
+            id="feedback_email"
+            name="feedbackemail"
+            label="Email для обратной связи"
+            variant="outlined"
+            fullWidth
+            align="center"
+            margin="normal"
+            inputRef={(el) => (this.feedback_email = el)}
+            required
+          />
+
+          {this.state.alertCapcha.state ? (
+            <Alert
+              severity="warning"
+              onClose={() => {
+                this.setState({
+                  alertCapcha: {
+                    message: "",
+                    state: false,
+                  },
+                });
+              }}
+            >
+              {" "}
+              <AlertTitle>{this.state.alertCapcha.message}</AlertTitle>{" "}
+            </Alert>
+          ) : null}
+
           <Autocomplete
-            //onChange={(_, projects) => getMakes(projects)}
+            options={this.state.organizations}
+            margin="dense"
+            getOptionLabel={(option) => `${option.name}`}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                id="ticket_organization"
+                name="nameOrganization"
+                margin="normal"
+                label="Подразделение/департамент/локация"
+                variant="outlined"
+                required
+              />
+            )}
+          />
+
+          <Autocomplete
             options={this.state.projects}
             margin="dense"
             getOptionLabel={(option) => `${option.name}`}
             renderInput={(params) => (
               <TextField
                 {...params}
-                id="ticket-project"
+                id="ticket_project"
                 name="nameProject"
                 margin="normal"
                 label="Проект"
                 variant="outlined"
-                //required
+                required
               />
             )}
           />
 
           <TextField
-            id="ticket-description"
+            id="ticket_description"
             name="description"
             label="Описание проблемы/бага"
             variant="outlined"
@@ -144,6 +270,7 @@ export default class TicketForm extends Component {
             multiline={true}
             align="center"
             margin="normal"
+            inputRef={(el) => (this.ticket_description = el)}
             required
           />
 
@@ -152,8 +279,12 @@ export default class TicketForm extends Component {
           ></Dropzone>
 
           <ConfirmDialog
-            title="Ответ от projqtor"
+            clear={this.clearTextFields}
+            isLoading={this.state.isLoading} //control loading spinner
+            changeLoading={this.changeLoading.bind(this)}
+            title="Ответ сервера"
             type="submit"
+            files={this.state.files}
             serverResponse={this.state.response}
             open={this.state.confimOpen}
             setOpen={this.setConfirmOpen.bind(this)}
@@ -161,11 +292,17 @@ export default class TicketForm extends Component {
             Подтвердите отправку
           </ConfirmDialog>
 
+          {/* <ReCAPTCHA
+            sitekey={omegaSecret}
+            ref={ (el) => {this.captchaDemo = el;}}
+            theme="dark"
+            onChange={this.onChangeCapcha}
+          /> */}
+
           <StyledButton
             type="submit"
             aria-label="Отправить тикет"
             id="submit_ticket"
-            onClick={() => this.setConfirmOpen(true)}
           >
             {" "}
             Отправить{" "}

@@ -4,5 +4,5 @@ import {
 } from '@material-ui/core';
 
 export default () => (
-  <Typography variant="h4">Walera !</Typography>
+  <Typography variant="h4"> Nothing here </Typography>
 );

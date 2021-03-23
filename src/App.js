@@ -1,12 +1,7 @@
 import React, { Fragment } from 'react';
 import { Route, BrowserRouter, Switch } from 'react-router-dom';
 import Navbar from "./components/Navbar";
-
-import {
-  CssBaseline,
-  withStyles,
-} from '@material-ui/core';
-
+import {CssBaseline,withStyles,} from '@material-ui/core';
 import AppHeader from './components/AppHeader';
 import Home from './pages/Home';
 import  Ticket from './components/Ticket.js';
