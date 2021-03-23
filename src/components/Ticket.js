@@ -15,7 +15,7 @@ import { Gluejar } from '@charliewilco/gluejar'
 //possible solutions - wrap state less component with logic components 
 //a lot to do
 
-const omegaSecret = "6LcXI4QaAAAAAMhnD5h1XYGSW44jEQw-2CyrV0R9";
+const omegaSecret = "secret";
 export default class TicketForm extends Component {
   constructor(props) {
     super(props);
