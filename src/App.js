@@ -5,6 +5,7 @@ import {CssBaseline,withStyles,} from '@material-ui/core';
 import AppHeader from './components/AppHeader';
 import Home from './pages/Home';
 import  Ticket from './components/Ticket.js';
+import DataSourceWrapperHoc from "./services/DataSourceWrapperHoc";
 
 const styles = theme => ({
   main: {
@@ -25,7 +26,7 @@ const App = ({ classes }) => (
   <div className="container mt-2" style={{ marginTop: 40 }}>
     <Switch>
     <Route exact path="/" component={Home} />
-    <Route exact path="/new_ticket" component= { Ticket } />
+    <Route exact path="/new_ticket" component= { DataSourceWrapperHoc } />
     <Route path="*" render={() => "404 Not found!"} />
   </Switch>
   </div>

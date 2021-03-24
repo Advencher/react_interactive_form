@@ -7,8 +7,21 @@ import * as Aes from "../utils/aes-ctr";
 const api_key = "475f49b4766e7021f4b2ecfe5afa0dfe";
 class ApiService {
 
+  dataSources = [ ["projects", "Project"], ["organizations", "Organization"] ];
+  handlers = [];
+
   constructor() {
     this.postNewTicket = this.postNewTicket.bind(this);
+    this.dataSourceMap = new Map();
+    //this.setMapValues();
+  }
+
+  getList(dataType) {
+    return this.dataSourceMap.get(dataType);
+  }
+
+  getMap() {
+    return this.dataSourceMap;
   }
 
   async getAllItems(objectType) {
@@ -30,6 +43,14 @@ class ApiService {
     cookies.remove("PHPSESSID", {path: "/", domain: "82.112.59.85"});
     return items;
   }
+
+  async setMapValues () {
+    for (let valor of this.dataSources) {
+      await this.dataSourceMap.set(valor[0], await  this.getAllItems(valor[1]));
+    }
+    return this.dataSourceMap;
+  }
+
 
   async validateHuman (RECAPTCHA_SERVER_KEY, humanKey) {
 

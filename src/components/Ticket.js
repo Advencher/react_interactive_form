@@ -86,8 +86,8 @@ export default class TicketForm extends Component {
   }
 
   async componentDidMount() {
-    let projects = await ApiProjeqtor.getAllItems("Project");
-    let organizations = await ApiProjeqtor.getAllItems("Organization");
+    let projects = await ApiProjeqtor.getList("Project");
+    let organizations = await ApiProjeqtor.getList("Organization");
 
     this.setState({
       projects: projects.items,
@@ -95,7 +95,7 @@ export default class TicketForm extends Component {
     });
   }
 
-  async changeLoading(loadingState) {
+  changeLoading(loadingState) {
     this.setState({ isLoading: loadingState });
   }
 
